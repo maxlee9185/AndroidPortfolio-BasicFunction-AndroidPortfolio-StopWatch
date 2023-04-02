@@ -1,9 +1,13 @@
 package android.portfolio.stopwatch
 
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.portfolio.stopwatch.databinding.ActivityMainBinding
 import android.portfolio.stopwatch.databinding.DialogCountdownSettingBinding
+import android.view.Gravity
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import java.util.*
@@ -79,6 +83,11 @@ class MainActivity : AppCompatActivity() {
                     binding.countDownProgressBar.progress = progress.toInt()
                 }
             }
+            if(currentDeciSecond==0 && currentCountdownDeciSecond<31 && currentCountdownDeciSecond%10==0){
+                val toneType= if(currentCountdownDeciSecond==0) ToneGenerator.TONE_CDMA_HIGH_L else ToneGenerator.TONE_CDMA_ABBR_ALERT
+                ToneGenerator(AudioManager.STREAM_ALARM,ToneGenerator.MAX_VOLUME)
+                    .startTone(toneType,100)
+            }
         }
     }
 
@@ -98,10 +107,30 @@ class MainActivity : AppCompatActivity() {
 
         binding.coundDownGroup.isVisible = true
         initCountdownViews()
+        binding.lapContainerLinearLayout.removeAllViews()
     }
 
     private fun check() {
-
+        if(currentDeciSecond==0) return
+        else {
+            val container = binding.lapContainerLinearLayout
+            TextView(this).apply {
+                textSize = 20f
+                gravity = Gravity.CENTER
+                val minutes = (currentDeciSecond / 10) / 60
+                val seconds = (currentDeciSecond / 10) % 60
+                val deciSeconds = currentDeciSecond % 10
+                text = container.childCount.inc().toString() + String.format(
+                    "%02d:%02d %01d",
+                    minutes,
+                    seconds,
+                    deciSeconds
+                )
+                setPadding(10, 10, 10, 10)
+            }.let { labTextView ->
+                container.addView(labTextView, 0)
+            }
+        }
     }
 
     private fun showCountdownSettingDialog() {
